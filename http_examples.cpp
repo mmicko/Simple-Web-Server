@@ -31,7 +31,7 @@ int main() {
     
     //Add resources using path-regex and method-string, and an anonymous function
     //POST-example for the path /string, responds the posted string
-    server.resource["^/string$"]["POST"]=[](auto response, auto request) {
+    server.on_post("^/string$", [](auto response, auto request) {
         //Retrieve string:
         auto content=request->content.string();
         //request->content.string() is a convenience function for:
@@ -40,7 +40,7 @@ int main() {
         //string content=ss.str();
         
         *response << "HTTP/1.1 200 OK\r\nContent-Length: " << content.length() << "\r\n\r\n" << content;
-    };
+    });
     
     //POST-example for the path /json, responds firstName+" "+lastName from the posted json
     //Responds with an appropriate error message if the posted json is not valid, or if firstName or lastName is missing
@@ -50,7 +50,7 @@ int main() {
     //  "lastName": "Smith",
     //  "age": 25
     //}
-    server.resource["^/json$"]["POST"]=[](auto response, shared_ptr<HttpServer::Request>) {
+    server.on_post("^/json$", [](auto response, shared_ptr<HttpServer::Request>) {
         try {
 
             string name="Test Name ";
@@ -63,11 +63,11 @@ int main() {
         catch(exception& e) {
             *response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << strlen(e.what()) << "\r\n\r\n" << e.what();
         }
-    };
+    });
 
     //GET-example for the path /info
     //Responds with request-information
-    server.resource["^/info$"]["GET"]=[](auto response, auto request) {
+    server.on_get("^/info$", [](auto response, auto request) {
         stringstream content_stream;
         content_stream << "<h1>Request from " << request->remote_endpoint_address << " (" << request->remote_endpoint_port << ")</h1>";
         content_stream << request->method << " " << request->path << " HTTP/" << request->http_version << "<br>";
@@ -79,24 +79,24 @@ int main() {
         content_stream.seekp(0, ios::end);
         
         *response <<  "HTTP/1.1 200 OK\r\nContent-Length: " << content_stream.tellp() << "\r\n\r\n" << content_stream.rdbuf();
-    };
+    });
     
     //GET-example for the path /match/[number], responds with the matched string in path (number)
     //For instance a request GET /match/123 will receive: 123
-    server.resource["^/match/([0-9]+)$"]["GET"]=[](auto response, auto request) {
+    server.on_get("^/match/([0-9]+)$", [](auto response, auto request) {
         string number=request->path_match[1];
         *response << "HTTP/1.1 200 OK\r\nContent-Length: " << number.length() << "\r\n\r\n" << number;
-    };
+    });
     
     //Get example simulating heavy work in a separate thread
-    server.resource["^/work$"]["GET"]=[](auto response, auto /*request*/) {
+    server.on_get("^/work$", [](auto response, auto /*request*/) {
         thread work_thread([response] {
             this_thread::sleep_for(chrono::seconds(5));
             string message="Work done";
             *response << "HTTP/1.1 200 OK\r\nContent-Length: " << message.length() << "\r\n\r\n" << message;
         });
         work_thread.detach();
-    };
+    });
     
     //Default GET-example. If no other matches, this anonymous function will be called. 
     //Will respond with content in the web/-directory, and its subdirectories.

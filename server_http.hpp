@@ -108,7 +108,9 @@ namespace SimpleWeb {
         };
         ///Set before calling start().
         Config config;
-        
+		void on_get(std::string regex, std::function<void(std::shared_ptr<typename ServerBase<socket_type>::Response>, std::shared_ptr<typename ServerBase<socket_type>::Request>)> func) { resource[regex]["GET"] = func; }
+		void on_post(std::string regex, std::function<void(std::shared_ptr<typename ServerBase<socket_type>::Response>, std::shared_ptr<typename ServerBase<socket_type>::Request>)> func) { resource[regex]["POST"] = func; }
+
         std::unordered_map<std::string, std::unordered_map<std::string, 
             std::function<void(std::shared_ptr<typename ServerBase<socket_type>::Response>, std::shared_ptr<typename ServerBase<socket_type>::Request>)> > >  resource;
         
